@@ -9,7 +9,7 @@ class User implements \JsonSerializable {
 
     public function getId(): ?int
     {
-        return $this->Id;
+        return $this->UserId;
     }
 
     public function setId(?int $UserId): User
@@ -115,6 +115,7 @@ class User implements \JsonSerializable {
         $requete->execute();
     
         $users = array();
+
         while ($userSql = $requete->fetch(\PDO::FETCH_ASSOC)) {
             $user = new User();
             $user->setMail($userSql["mail"])
@@ -142,7 +143,7 @@ class User implements \JsonSerializable {
         return $requete;
     }
 
-    public static function SqlUpdate(int $userId, User $updatedUser) : array {
+    public static function SqlUpdate(int $userId, User $updatedUser) : ?array {
         $oldUser = User::SqlGetById($userId);
         if($oldUser == null)
             return null;
