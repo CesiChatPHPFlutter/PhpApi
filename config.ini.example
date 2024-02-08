@@ -1,0 +1,5 @@
+DBHostname="localhost"
+DBUsername="root"
+DBPassword=""
+DBName="cesichat"
+DBPort="3306"
