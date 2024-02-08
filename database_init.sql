@@ -1,6 +1,10 @@
+DROP TABLE Messages;
+DROP TABLE Users;
+
 CREATE TABLE Users (
                        user_id INTEGER PRIMARY KEY AUTO_INCREMENT,
                        name VARCHAR(255),
+                       mail VARCHAR(255),
                        password VARCHAR(255)
 );
 
@@ -9,14 +13,15 @@ CREATE TABLE Messages (
                           sender_id INTEGER,
                           receiver_id INTEGER,
                           content TEXT,
+                          timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                           FOREIGN KEY (sender_id) REFERENCES Users(user_id),
                           FOREIGN KEY (receiver_id) REFERENCES Users(user_id)
 );
 
 -- Inserting users
-INSERT INTO Users (name, password) VALUES ('User1', 'password1');
-INSERT INTO Users (name, password) VALUES ('User2', 'password2');
-INSERT INTO Users (name, password) VALUES ('User3', 'password3');
+INSERT INTO Users (name, mail, password) VALUES ('User1', 'User1@mail.dom', 'password1');
+INSERT INTO Users (name, mail, password) VALUES ('User2', 'User2@mail.dom', 'password2');
+INSERT INTO Users (name, mail, password) VALUES ('User3', 'User3@mail.dom', 'password3');
 
 -- Inserting messages
 INSERT INTO Messages (sender_id, receiver_id, content) VALUES

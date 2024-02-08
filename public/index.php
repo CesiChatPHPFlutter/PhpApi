@@ -24,6 +24,8 @@ $controller = (isset($urls[0])) ? $urls[0] : '';
 $action = (isset($urls[1])) ? $urls[1] : '';
 $param = (isset($urls[2])) ? $urls[2] : '';
 
+//header('Content-Type: application/json; charset=utf-8');
+
 if($controller != ''){
     try {
         $class = "src\Controller\\".$controller."Controller";
@@ -40,8 +42,8 @@ if($controller != ''){
     }
 }else {
     //Route par défaut (/)
-    $controller = new \src\Controller\ArticleController();
-    echo $controller->index();
+    $controller = new \src\Controller\UserController();
+    echo $controller->getAll();
 }
 
 
