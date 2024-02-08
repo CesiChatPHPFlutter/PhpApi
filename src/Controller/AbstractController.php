@@ -1,5 +1,5 @@
 <?php
-namespace src\Controller;
+namespace App\Controller;
 
 class AbstractController
 {

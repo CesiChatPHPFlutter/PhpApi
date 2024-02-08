@@ -1,10 +1,10 @@
 <?php
-namespace src\Controller;
+namespace App\Controller;
 
 use Mpdf\Mpdf;
 use Mpdf\Output\Destination;
-use src\Model\Article;
-use src\Service\MailService;
+use App\Model\Article;
+use App\Service\MailService;
 
 class ArticleController extends AbstractController {
 

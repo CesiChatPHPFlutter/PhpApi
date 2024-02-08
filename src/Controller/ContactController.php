@@ -1,7 +1,7 @@
 <?php
-namespace src\Controller;
+namespace App\Controller;
 
-use src\Service\MailService;
+use App\Service\MailService;
 
 class ContactController extends AbstractController {
 

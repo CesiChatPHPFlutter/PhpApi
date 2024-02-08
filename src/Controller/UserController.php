@@ -1,8 +1,8 @@
 <?php
-namespace src\Controller;
+namespace App\Controller;
 
-use src\Model\User;
-use src\Service\JwtService;
+use App\Model\User;
+use App\Service\JwtService;
 
 class UserController extends AbstractController {
 
@@ -71,51 +71,54 @@ class UserController extends AbstractController {
     //     header("location:/");
     // }
 
-    // public function loginJwt(){
-    //     header('Content-Type: application/json; charset=utf-8');
+    public function loginJwt(){
+        
+        $requestBody = json_decode(file_get_contents('php://input'), true);
 
-    //     if($_SERVER["REQUEST_METHOD"] != "POST"){
-    //         header("HTTP/1.1 404 Not Found");
-    //         return json_encode("Erreur de méthode (POST attendu)");
-    //     }
+        if($_SERVER['REQUEST_METHOD'] != 'POST'){
+            header('HTTP/1.1 404 Not Found');
+            return json_encode('Erreur de méthode (POST attendu)');
+        }
 
-    //     if(!isset($_POST["mail"]) || !isset($_POST["password"])){
-    //         header("HTTP/1.1 404 Not Found");
-    //         return json_encode("Erreur il manque des données)");
-    //     }
+        if(!isset($requestBody['mail']) || !isset($requestBody['password'])){
+            header('HTTP/1.1 404 Not Found');
+            return json_encode('Erreur il manque des données)');
+        }
 
-    //     $user = User::SqlGetByMail($_POST["mail"]);
-    //     if($user==null){
-    //         return json_encode("Erreur user inconu");
-    //     }
+        $user = User::SqlGetByMail($requestBody['mail']);
+        if($user == null){
+            return json_encode('Erreur user inconu');
+        }
 
-    //     if (!password_verify($_POST["password"], $user->getPassword())) {
-    //         return json_encode("Erreur User / Password");
-    //     }
+        if (!password_verify($requestBody["password"], $user->getPassword())) {
+            return json_encode('Erreur User / Password');
+        }
 
-    //     echo JwtService::createToken([
-    //        "mail" => $user->getMail(),
-    //        "roles" => $user->getRoles(),
-    //        "nomprenom" => $user->getNomPrenom()
-    //     ]);
-    // }
+        $token = JwtService::createToken([
+        'mail' => $user->getMail(),
+        'nomprenom' => $user->getName()
+        ]);
 
-    public function GetAll() {
+        header('Content-Type: application/json; charset=utf-8');
+        return json_encode($token);
+    }
+
+    public function getAll() {
         header('Content-Type: application/json; charset=utf-8');
         return json_encode(User::SqlGetAll());
     }
 
-    public function GetById(int $userId) {
+    public function getById(int $userId) {
         header('Content-Type: application/json; charset=utf-8');
         return json_encode(User::SqlGetById($userId));
     }
 
-    public function GetByMail(string $mail) {
+    public function getByMail(string $mail) {
         header('Content-Type: application/json; charset=utf-8');
         return json_encode(User::SqlGetByMail($mail));
     }
 
-    public function Update(int $userId) {
+    public function update(int $userId) {
         header('Content-Type: application/json; charset=utf-8');
         // $test = JwtService::checkToken();
         // var_dump($test);
@@ -139,33 +142,34 @@ class UserController extends AbstractController {
         return json_encode(User::SqlUpdate($userId, $updatedUser));
     }
     
-    public function Create() {
-        header('Content-Type: application/json; charset=utf-8');
-        $requestBody = json_decode(file_get_contents('php://input'));
+    public function create() {
         
-        $newUser = new User();
-        if(isset($requestBody->{"Name"}))
-            $newUser->setName($requestBody->{"Name"});
-        else 
-            $newUser->setName("");
-        if(isset($requestBody->{"Mail"}))
-            $newUser->setMail($requestBody->{"Mail"});
-        else 
-            $newUser->setMail("");  
-        if(isset($requestBody->{"Password"}))
-            $newUser->setPassword($requestBody->{"Password"});
-        else 
-            $newUser->setPassword("");
+        $requestBody = json_decode(file_get_contents('php://input'), true);
+        $hashpass = password_hash($requestBody['password'], PASSWORD_BCRYPT);
 
-        return json_encode(User::SqlAdd($newUser));
+        $newUser = new User();
+
+        if ($name = $requestBody['name'] ?? null) {
+            $newUser->setName($name);
+        }
+        if ($mail = $requestBody['mail'] ?? null) {
+            $newUser->setMail($mail);
+        }
+        if ($password = $requestBody['password'] ?? null) {
+            $hashpass = password_hash($password, PASSWORD_BCRYPT);
+            $newUser->setPassword($hashpass);
+        }
+        
+        $response = User::SqlAdd($newUser);
+        return json_encode($response[2]);
     }
 
-    public function Delete(int $userId) {
+    public function delete(int $userId) {
         header('Content-Type: application/json; charset=utf-8');
         return json_encode(User::SqlDelete($userId));
     }
 
-    public function Login() {
+    public function login() {
         $requestBody = json_decode(file_get_contents('php://input'));
 
         $mail = $requestBody->{"Mail"} ?: "";
