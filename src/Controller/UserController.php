@@ -170,13 +170,13 @@ class UserController extends AbstractController {
     }
 
     public function login() {
-        $requestBody = json_decode(file_get_contents('php://input'));
+        $requestBody = json_decode(file_get_contents('php://input'), true);
 
-        $mail = $requestBody->{"Mail"} ?: "";
-        $password = $requestBody->{"Password"} ?: "";
+        $mail = $requestBody['mail'] ?: "";
+        $password = $requestBody['password'] ?: "";
 
         $user = User::SqlGetByMail($mail);
-        if($user != null && $user->getPassword() == $password) {
+        if($user != null && password_verify($requestBody["password"], $user->getPassword())) {
             return json_encode([ 
                 "User" => $user,
                 "JwtToken" => JwtService::createToken([
