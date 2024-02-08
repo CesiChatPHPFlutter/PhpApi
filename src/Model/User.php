@@ -1,11 +1,11 @@
 <?php
-namespace src\Model;
+namespace App\Model;
 
 class User implements \JsonSerializable {
     private ?int $UserId = null;
-    private ?String $Name;
-    private ?String $Mail;
-    private ?String $Password;
+    private ?String $Name = null;
+    private ?String $Mail = null;
+    private ?String $Password = null;
 
     public function getId(): ?int
     {

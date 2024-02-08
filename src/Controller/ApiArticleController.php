@@ -1,8 +1,8 @@
 <?php
-namespace src\Controller;
+namespace App\Controller;
 
-use src\Model\Article;
-use src\Service\JwtService;
+use App\Model\Article;
+use App\Service\JwtService;
 
 class ApiArticleController{
 

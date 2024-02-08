@@ -1,14 +1,14 @@
 <?php
-namespace src\Model;
+namespace App\Model;
 use PDO;
 
 class BDD{
     private static $_instance = null;
-private const _DBHOSTNAME_ = "localhost";
-private const _DBUSERNAME_ = "root";
-    private  const _DBPASSWORD_ = "";
+    private const _DBHOSTNAME_ = "localhost";
+    private const _DBUSERNAME_ = "root";
+    private  const _DBPASSWORD_ = "root";
     private const _DBNAME_ = "cesichat";
-private const _DBPORT_ = 3306;
+    private const _DBPORT_ = 8889;
 
     private function __construct() {}
     private function __clone() {}

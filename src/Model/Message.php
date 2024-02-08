@@ -1,6 +1,6 @@
 <?php
-namespace src\Model;
-use src\Model\User;
+namespace App\Model;
+use App\Model\User;
 
 class Message {
     private ?int $MessageId = null;
