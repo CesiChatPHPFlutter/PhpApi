@@ -5,6 +5,7 @@
         "firebase/php-jwt": "^6.9",
         "laminas/laminas-config": "^2.5",
         "mpdf/mpdf": "^8.2"
+<<<<<<< Updated upstream
     },
     "autoload": {
         "psr-4": {
@@ -13,5 +14,12 @@
     },
     "require-dev": {
         "symfony/var-dumper": "^7.0"
+=======
+
+    },
+    "require-dev": {
+        "squizlabs/php_codesniffer": "*",
+        "phpstan/phpstan": "*"
+>>>>>>> Stashed changes
     }
 }
