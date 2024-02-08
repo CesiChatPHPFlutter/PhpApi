@@ -42,7 +42,7 @@ class Message {
 
     public function setSender(?int $SenderId): Message
     {
-        $this->Sender = User->SqlGetById($SenderId);
+        $this->Sender = User::SqlGetById($SenderId);
         return $this;
     }
 
@@ -58,7 +58,7 @@ class Message {
 
     public function setReceiver(?int $receiverId): Message
     {
-        $this->receiver = User->SqlGetById($receiverId);
+        $this->receiver = User::SqlGetById($receiverId);
         return $this;
     }
 
@@ -88,6 +88,7 @@ class Message {
             return [1,"ERROR => {$e->getMessage()}"];
         }
     }
+
 
     public static function SqlGetBySenderId(int $senderId) : ?array{
         $bdd = BDD::getInstance();

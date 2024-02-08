@@ -7,6 +7,25 @@ use App\Service\JwtService;
 
 class MessageController extends AbstractController {
 
+    public function create () {
+        $requestBody = json_decode(file_get_contents('php://input'), true);
+        $newMessage = new Message();
+
+        if ($senderId = $requestBody['senderId'] ?? null) {
+            $newMessage->setSender($senderId);
+        }
+        if ($receiverId = $requestBody['receiverId'] ?? null) {
+            $newMessage->setReceiver($receiverId);
+        }
+        if ($content = $requestBody['content'] ?? null) {
+            $newMessage->setContent($content);
+        }
+
+
+        //header('Content-Type: application/json; charset=utf-8');
+        return json_encode(Message::SqlAdd($newMessage));
+    }
+
     public function getBySenderId(int $senderId) {
         header('Content-Type: application/json; charset=utf-8');
         return json_encode(Message::SqlGetBySenderId($senderId));
@@ -23,10 +42,10 @@ class MessageController extends AbstractController {
         $updatedMessage = new Message();
 
         if ($senderId = $requestBody['senderId'] ?? null) {
-            $updatedMessage->setName($name);
+            $updatedMessage->setSender($senderId);
         }
         if ($receiverId = $requestBody['receiverId'] ?? null) {
-            $updatedMessage->setMail($mail);
+            $updatedMessage->setReceiver($receiverId);
         }
         if ($content = $requestBody['content'] ?? null) {
         }
@@ -39,4 +58,7 @@ class MessageController extends AbstractController {
         header('Content-Type: application/json; charset=utf-8');
         return json_encode(Message::SqlDelete($messageId));
     }
+
+
+
 }
