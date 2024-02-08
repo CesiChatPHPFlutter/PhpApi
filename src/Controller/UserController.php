@@ -55,24 +55,21 @@ class UserController extends AbstractController {
 
     public function update(int $userId) {
         header('Content-Type: application/json; charset=utf-8');
-        // $test = JwtService::checkToken();
-        // var_dump($test);
 
         $requestBody = json_decode(file_get_contents('php://input'));
         
         $updatedUser = new User();
-        if(isset($requestBody->{"Name"}))
-            $updatedUser->setName($requestBody->{"Name"});
-        else 
-            $updatedUser->setName("");
-        if(isset($requestBody->{"Mail"}))
-            $updatedUser->setMail($requestBody->{"Mail"});
-        else 
-            $updatedUser->setMail("");  
-        if(isset($requestBody->{"Password"}))
-            $updatedUser->setPassword($requestBody->{"Password"});
-        else 
-            $updatedUser->setPassword("");
+
+        if ($name = $requestBody['name'] ?? null) {
+            $updatedUser->setName($name);
+        }
+        if ($mail = $requestBody['mail'] ?? null) {
+            $updatedUser->setMail($mail);
+        }
+        if ($password = $requestBody['password'] ?? null) {
+            $hashpass = password_hash($password, PASSWORD_BCRYPT);
+            $updatedUser->setPassword($hashpass);
+        }
 
         return json_encode(User::SqlUpdate($userId, $updatedUser));
     }
