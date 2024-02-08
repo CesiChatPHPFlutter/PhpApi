@@ -109,6 +109,7 @@ class UserController extends AbstractController {
 
         $user = User::SqlGetByMail($mail);
         if($user != null && password_verify($requestBody["password"], $user->getPassword())) {
+            header('Content-Type: application/json; charset=utf-8');
             return json_encode([ 
                 "User" => $user,
                 "JwtToken" => JwtService::createToken([
@@ -117,6 +118,10 @@ class UserController extends AbstractController {
                 ])
             ]);
         }          
-        else return "Mail and/or Password are incorrect";
+        else {
+            header('Content-Type: application/json; charset=utf-8');
+            http_response_code(400);
+            return "Mail and/or Password are incorrect";
+        }
     }
 }
