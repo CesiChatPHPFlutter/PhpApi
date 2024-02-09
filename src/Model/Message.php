@@ -2,20 +2,20 @@
 namespace App\Model;
 use App\Model\User;
 
-class Message {
+class Message implements \JsonSerializable {
     private ?int $MessageId = null;
     private String $Content;
     private User $Sender;
     private User $receiver;
-    private datetime $Timestamp;
+    private string $Timestamp;
 
     public function getId(): ?int{
-        return $this->Id;
+        return $this->MessageId;
     }
 
     public function setId(?int $Id): Message
     {
-        $this->Id = $Id;
+        $this->MessageId = $Id;
         return $this;
     }
 
@@ -62,12 +62,12 @@ class Message {
         return $this;
     }
 
-    public function getTimestamp(): ?datetime
+    public function getTimestamp(): ?string
     {
         return $this->Timestamp;
     }
 
-    public function setTimestamp(?datetime $Timestamp): Message
+    public function setTimestamp(?string $Timestamp): Message
     {
         $this->Timestamp = $Timestamp;
         return $this;
@@ -87,6 +87,27 @@ class Message {
         }catch (\Exception $e){
             return [1,"ERROR => {$e->getMessage()}"];
         }
+    }
+
+    public static function SqlGetMessagesBetweenUsers(int $userId1, int $userId2): ?array {
+        $bdd = BDD::getInstance();
+        $requete = $bdd->prepare('SELECT * FROM messages WHERE (sender_id=:userId1 AND receiver_id=:userId2) OR (sender_id=:userId2 AND receiver_id=:userId1) ORDER BY timestamp');
+        $requete->execute([
+            "userId1"=> $userId1,
+            "userId2"=> $userId2
+        ]);
+
+        $messages = array();
+        while ($messageSql = $requete->fetch(\PDO::FETCH_ASSOC)) {
+            $message = new Message();
+            $message->setContent($messageSql["content"])
+                ->setSender($messageSql["sender_id"])
+                ->setReceiver($messageSql["receiver_id"])
+                ->setId($messageSql["message_id"])
+                ->setTimestamp($messageSql["timestamp"]);
+            $messages[] = $message;
+        }
+        return $messages ?: null;
     }
 
 
@@ -148,5 +169,16 @@ class Message {
         } catch(Exception $e) {
             return [-1, 'NOOK', Message::SqlGetById($messageId)];
         }
+    }
+
+    public function jsonSerialize(): mixed{
+
+        return [
+            "message_id" => $this->MessageId,
+            "content" => $this->Content,
+            "sender_id" => $this->Sender->getId(),
+            "receiver_id" => $this->receiver->getId(),
+            "timestamp" => $this->Timestamp??null
+        ];
     }
 }
