@@ -125,7 +125,7 @@ class User implements \JsonSerializable {
             $users[] = $user;
         }
     
-        return $users ?: null;
+        return $users ?? null;
     }
 
     public static function SqlDelete(int $userId): array {
@@ -153,9 +153,9 @@ class User implements \JsonSerializable {
             $requete = $bdd->prepare('UPDATE users SET name=:name, mail=:mail, password=:password WHERE user_id=:userId');
             $requete->execute([
                 "userId" => $userId,
-                "name" => $updatedUser->getName() ?: $oldUser->getName(),
-                "mail" => $updatedUser->getMail() ?: $oldUser->getMail(),
-                "password" => $updatedUser->getPassword() ?: $oldUser->getPassword(),
+                "name" => ($updatedUser->getName() ?? '') ?: $oldUser->getName(),
+                "mail" => ($updatedUser->getMail() ?? '') ?: $oldUser->getMail(),
+                "password" => ($updatedUser->getPassword() ?? '') ?: $oldUser->getPassword(),
             ]);
 
             return [0, 'OK', User::SqlGetById($userId)];
