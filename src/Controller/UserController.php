@@ -53,13 +53,23 @@ class UserController {
         return json_encode(User::SqlGetByMail($mail));
     }
 
-    public function update(int $userId) {
-        header('Content-Type: application/json; charset=utf-8');
+    public function update() {
+        $requestBody = json_decode(file_get_contents('php://input'), true);
+        if($userId = $requestBody['userId'] ?? null){}
+        else if($jwtToken = $requestBody['jwtToken'] ?? null){
+            $datas = JwtService::decryptToken($jwtToken);
+            if($datas == null || $datas->userId == null) {
+                http_response_code(400);
+                return "Invalid jwtToken";
+            }
 
-        $requestBody = json_decode(file_get_contents('php://input'));
-        
+            $userId = $datas->userId;
+        } else {
+            http_response_code(400);
+            return "No valid userId found";
+        }
+
         $updatedUser = new User();
-
         if ($name = $requestBody['name'] ?? null) {
             $updatedUser->setName($name);
         }
@@ -71,7 +81,10 @@ class UserController {
             $updatedUser->setPassword($hashpass);
         }
 
-        return json_encode(User::SqlUpdate($userId, $updatedUser));
+        $response = User::SqlUpdate($userId, $updatedUser);
+        header('Content-Type: application/json; charset=utf-8');
+        http_response_code($response[0] == 0 ? 200 : 400);
+        return json_encode($response[2]);
     }
     
     public function create() {        
@@ -82,14 +95,14 @@ class UserController {
         $newUser = new User();
         if ($name = $requestBody['name'] ?? null) {
             $newUser->setName($name);
-        } else return null;
+        } else return 'Missing Name';
         if ($mail = $requestBody['mail'] ?? null) {
             $newUser->setMail($mail);
-        } else return null;
+        } else return 'Missing Mail';
         if ($password = $requestBody['password'] ?? null) {
             $hashpass = password_hash($password, PASSWORD_BCRYPT);
             $newUser->setPassword($hashpass);
-        } else return null;
+        } else return 'Missing Mail';
         
 
         $response = User::SqlAdd($newUser);
@@ -100,12 +113,13 @@ class UserController {
         
         header('Content-Type: application/json; charset=utf-8');
         return json_encode($response[2]);
-
     }
 
     public function delete(int $userId) {
+        $response = User::SqlDelete($userId);
         header('Content-Type: application/json; charset=utf-8');
-        return json_encode(User::SqlDelete($userId));
+        http_response_code($response[0] == 0 ? 200 : 400);
+        return json_encode($response[1]);
     }
 
     public function login() {
@@ -113,13 +127,17 @@ class UserController {
 
         $mail = $requestBody['mail'] ?? null;
         $password = $requestBody['password'] ?? null;
+        if($mail == null || $password == null) {
+            http_response_code(400);
+            return "No valid arguments";
+        }
 
         $user = User::SqlGetByMail($mail);
         if($user != null && password_verify($requestBody["password"], $user->getPassword())) {
             header('Content-Type: application/json; charset=utf-8');
             return json_encode([ 
-                "User" => $user,
-                "JwtToken" => JwtService::createToken([
+                "user" => $user,
+                "jwtToken" => JwtService::createToken([
                     "userId" => $user->getId(),
                     "mail" => $user->getMail(),
                     "name" => $user->getName()

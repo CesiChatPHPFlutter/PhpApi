@@ -44,7 +44,6 @@ class MessageController {
         return json_encode(Message::SqlGetMessagesBetweenUsers($userId1, $userId2));
     }
 
-
     public function update(int $messageId)
     {
         $requestBody = json_decode(file_get_contents('php://input'), true);
