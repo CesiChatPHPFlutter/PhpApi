@@ -83,9 +83,9 @@ class Message implements \JsonSerializable {
                 "Content" => $message->getContent(),
             ]);
 
-            return [0,"Insertion OK", $bdd->lastInsertId()];
+            return [0,"OK", $bdd->lastInsertId()];
         }catch (\Exception $e){
-            return [1,"ERROR => {$e->getMessage()}"];
+            return [1,'NOOK',"{$e->getMessage()}"];
         }
     }
 
@@ -109,7 +109,6 @@ class Message implements \JsonSerializable {
         }
         return $messages ?: null;
     }
-
 
     public static function SqlGetBySenderId(int $senderId) : ?array{
         $bdd = BDD::getInstance();
@@ -153,7 +152,7 @@ class Message implements \JsonSerializable {
     {
         $oldMessage = Message::SqlGetById($messageId);
         if($oldMessage == null)
-            return null;
+            return [2, 'NOOK', "Invalid messageId, message #{$userId} does not exist"];
 
         $bdd = BDD::getInstance();
         try{
@@ -167,10 +166,9 @@ class Message implements \JsonSerializable {
 
             return [0, 'OK', Message::SqlGetById($messageId)];
         } catch(Exception $e) {
-            return [-1, 'NOOK', Message::SqlGetById($messageId)];
+            return [1, 'NOOK', Message::SqlGetById($messageId)];
         }
     }
-
 
     public function jsonSerialize(): mixed {
 
@@ -210,5 +208,37 @@ class Message implements \JsonSerializable {
             $users[] = $user;
         }
         return $users ?? null;
+    }
+
+    public static function SqlDeleteByMessageId(int $messageId): ?array
+    {
+        $bdd = BDD::getInstance();
+        try{
+            $requete = $bdd->prepare('DELETE FROM messages WHERE message_id=:messageId');
+            $requete->execute([
+                "messageId" => $messageId 
+            ]);
+            return [0, 'OK'];
+        } catch(Exception $e) {
+            return [-1, 'NOOK'];
+        }
+
+        return $requete;
+    }
+
+    public static function SqlDeleteByUserId(int $userId): ?array
+    {
+        $bdd = BDD::getInstance();
+        try{
+            $requete = $bdd->prepare('DELETE FROM messages WHERE sender_id=:userId OR receiver_id=:userId');
+            $requete->execute([
+                "userId" => $userId 
+            ]);
+            return [0, 'OK'];
+        } catch(Exception $e) {
+            return [-1, 'NOOK'];
+        }
+
+        return $requete;
     }
 }
