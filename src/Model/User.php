@@ -146,7 +146,7 @@ class User implements \JsonSerializable {
     public static function SqlUpdate(int $userId, User $updatedUser) : ?array {
         $oldUser = User::SqlGetById($userId);
         if($oldUser == null)
-            return null;
+            return [2, 'NOOK', "Invalid userId, user #{$userId} does not exist"];
 
         $bdd = BDD::getInstance();
         try{
@@ -160,7 +160,7 @@ class User implements \JsonSerializable {
 
             return [0, 'OK', User::SqlGetById($userId)];
         } catch(Exception $e) {
-            return [-1, 'NOOK', User::SqlGetById($userId)];
+            return [1, 'NOOK', User::SqlGetById($userId)];
         }
     }
 

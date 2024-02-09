@@ -6,26 +6,6 @@ use App\Model\Message;
 use App\Service\JwtService;
 
 class MessageController {
-
-    public function create () {
-        $requestBody = json_decode(file_get_contents('php://input'), true);
-        $newMessage = new Message();
-
-        if ($senderId = $requestBody['senderId'] ?? null) {
-            $newMessage->setSender($senderId);
-        }
-        if ($receiverId = $requestBody['receiverId'] ?? null) {
-            $newMessage->setReceiver($receiverId);
-        }
-        if ($content = $requestBody['content'] ?? null) {
-            $newMessage->setContent($content);
-        }
-
-
-        //header('Content-Type: application/json; charset=utf-8');
-        return json_encode(Message::SqlAdd($newMessage));
-    }
-
     public function getBySenderId(int $senderId) {
         header('Content-Type: application/json; charset=utf-8');
         return json_encode(Message::SqlGetBySenderId($senderId));
@@ -42,29 +22,6 @@ class MessageController {
         $userId2 = $requestBody->userId2;
         header('Content-Type: application/json; charset=utf-8');
         return json_encode(Message::SqlGetMessagesBetweenUsers($userId1, $userId2));
-    }
-
-    public function update(int $messageId)
-    {
-        $requestBody = json_decode(file_get_contents('php://input'), true);
-        $updatedMessage = new Message();
-
-        if ($senderId = $requestBody['senderId'] ?? null) {
-            $updatedMessage->setSender($senderId);
-        }
-        if ($receiverId = $requestBody['receiverId'] ?? null) {
-            $updatedMessage->setReceiver($receiverId);
-        }
-        if ($content = $requestBody['content'] ?? null) {
-        }
-
-        header('Content-Type: application/json; charset=utf-8');
-        return json_encode(message::SqlUpdate($messageId, $updatedMessage));
-    }
-    
-    public function delete(int $messageId) {
-        header('Content-Type: application/json; charset=utf-8');
-        return json_encode(Message::SqlDelete($messageId));
     }
 
     public function getChats(){
@@ -86,4 +43,63 @@ class MessageController {
         header('Content-Type: application/json; charset=utf-8');
         return json_encode($array);
     }
+
+    public function create () {
+        $requestBody = json_decode(file_get_contents('php://input'), true);
+        
+        http_response_code(400);
+
+        $newMessage = new Message();
+        if ($senderId = $requestBody['senderId'] ?? null) {
+            $newMessage->setSender($senderId);
+        } else return 'Missing Sender';
+        if ($receiverId = $requestBody['receiverId'] ?? null) {
+            $newMessage->setReceiver($receiverId);
+        } else return 'Missing Receiver';
+        if ($content = $requestBody['content'] ?? null) {
+            $newMessage->setContent($content);
+        } else $newMessage->setContent(' ');
+
+        $response = Message::SqlAdd($newMessage);
+
+        if($response[0] == 0)
+            http_response_code(200);            
+        else if ($response[0] == 1) 
+            http_response_code(500);   
+        
+        header('Content-Type: application/json; charset=utf-8');
+        return json_encode($response[2]);
+    }
+
+    public function update(int $messageId)
+    {
+        $requestBody = json_decode(file_get_contents('php://input'), true);
+        if(!($messageId = $requestBody['messageId'] ?? null)){
+            http_response_code(400);
+            return "No valid messageId found";
+        }
+
+        $updatedMessage = new Message();
+        if ($senderId = $requestBody['senderId'] ?? null) {
+            $updatedMessage->setSender($senderId);
+        }
+        if ($receiverId = $requestBody['receiverId'] ?? null) {
+            $updatedMessage->setReceiver($receiverId);
+        }
+        if ($content = $requestBody['content'] ?? null) {
+        }
+
+        $response = Message::SqlUpdate($messageId, $updatedMessage);
+        header('Content-Type: application/json; charset=utf-8');
+        http_response_code($response[0] == 0 ? 200 : 400);
+        return json_encode($response[2]);
+    }
+    
+    public function delete(int $messageId) {
+        $response = Message::SqlDelete($messageId);
+        header('Content-Type: application/json; charset=utf-8');
+        http_response_code($response[0] == 0 ? 200 : 400);
+        return json_encode($response[1]);
+    }
+
 }
