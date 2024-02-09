@@ -4,7 +4,7 @@ namespace App\Controller;
 use App\Model\User;
 use App\Service\JwtService;
 
-class UserController extends AbstractController {
+class UserController {
 
     public function loginJwt(){
         
@@ -104,8 +104,8 @@ class UserController extends AbstractController {
     public function login() {
         $requestBody = json_decode(file_get_contents('php://input'), true);
 
-        $mail = $requestBody['mail'] ?: "";
-        $password = $requestBody['password'] ?: "";
+        $mail = $requestBody['mail'] ?? null;
+        $password = $requestBody['password'] ?? null;
 
         $user = User::SqlGetByMail($mail);
         if($user != null && password_verify($requestBody["password"], $user->getPassword())) {
@@ -113,8 +113,9 @@ class UserController extends AbstractController {
             return json_encode([ 
                 "User" => $user,
                 "JwtToken" => JwtService::createToken([
-                    "Mail" => $user->getMail(),
-                    "Name" => $user->getName()
+                    "userId" => $user->getId(),
+                    "mail" => $user->getMail(),
+                    "name" => $user->getName()
                 ])
             ]);
         }          

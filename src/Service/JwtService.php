@@ -10,7 +10,7 @@ class JwtService{
     public static function createToken(array $datas) : String {
         $issuedAt = new \DateTime(); //Date de publication
         $expire = new \DateTime();
-        $expire->modify('+6 minutes');
+        $expire->modify('+6 hours');
 
         $data = [
           "iat" => $issuedAt->getTimestamp(), // Date création
@@ -76,6 +76,14 @@ class JwtService{
         ];
         return $result;
 
+    }
+
+    public static function decryptToken(string $jwtToken) : ?object {
+        try{
+            return JWT::decode($jwtToken, new Key(self::$secretKey, 'HS512'))->datas ?? null;
+        } catch (Exception $e) {
+            return null;
+        }
     }
 
 }
