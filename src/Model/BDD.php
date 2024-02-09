@@ -3,14 +3,9 @@ namespace App\Model;
 use PDO;
 use App\Model\Config;
 
-class BDD{
+class BDD
+{
     private static $_instance = null;
-    private const _DBHOSTNAME_ = "localhost";
-    private const _DBUSERNAME_ = "root";
-    private  const _DBPASSWORD_ = "";
-    private const _DBNAME_ = "cesichat";
-    private const _DBPORT_ = 3306;
-
     private function __construct() {}
     private function __clone() {}
 
@@ -31,5 +26,37 @@ class BDD{
         }
 
         return SELF::$_instance;
+    }
+
+    public static function init(){
+        $bdd = SELF::getInstance();
+
+        $database_init_query = file_get_contents('' . getcwd() . DIRECTORY_SEPARATOR . '..' . DIRECTORY_SEPARATOR . 'config' . DIRECTORY_SEPARATOR . 'database_init.sql');
+        $eee = $bdd->query($database_init_query);
+        $eee->closeCursor();
+
+        $init_data_str = file_get_contents('' . getcwd() . DIRECTORY_SEPARATOR . '..' . DIRECTORY_SEPARATOR . 'config' . DIRECTORY_SEPARATOR . 'init_data.json');
+        $init_data = json_decode($init_data_str);
+
+        foreach($init_data->users as $user_data){
+            $user = new User();
+
+            $user->setName($user_data->name);
+            $user->setMail($user_data->mail);
+            $hashpass = password_hash($user_data->password, PASSWORD_BCRYPT);
+            $user->setPassword($hashpass);
+
+            User::SqlAdd($user);
+        }
+
+        foreach($init_data->messages as $message_data){
+            $message = new Message();
+
+            $message->setContent($message_data->content);
+            $message->setSender($message_data->senderId);
+            $message->setReceiver($message_data->receiverId);
+
+            Message::SqlAdd($message);
+        }
     }
 }

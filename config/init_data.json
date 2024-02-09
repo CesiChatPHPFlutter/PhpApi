@@ -1,0 +1,52 @@
+{
+    "users": [
+      {
+        "name": "User1",
+        "mail": "User1@mail.com",
+        "password": "password1"
+      },
+      {
+        "name": "User2",
+        "mail": "User2@mail.com",
+        "password": "password2"
+      },
+      {
+        "name": "User3",
+        "mail": "User3@mail.com",
+        "password": "password3"
+      }
+    ],
+    "messages": [
+      {
+        "senderId": 1,
+        "receiverId": 2,
+        "content": "Hello, User2!"
+      },
+      {
+        "senderId": 2,
+        "receiverId": 1,
+        "content": "Hi, User1! How are you?"
+      },
+      {
+        "senderId": 1,
+        "receiverId": 3,
+        "content": "Hey, User3!"
+      },
+      {
+        "senderId": 3,
+        "receiverId": 1,
+        "content": "Hello, User1!"
+      },
+      {
+        "senderId": 2,
+        "receiverId": 3,
+        "content": "Hi, User3. What are you up to?"
+      },
+      {
+        "senderId": 3,
+        "receiverId": 2,
+        "content": "Not much, just relaxing."
+      }
+    ]
+  }
+  

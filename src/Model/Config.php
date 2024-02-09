@@ -12,7 +12,7 @@ class Config{
     public static function load() {
         if(SELF::$_config == null)
         {
-            SELF::$_config = parse_ini_file('' . getcwd() . '\\..\\config.ini');
+            SELF::$_config = parse_ini_file('' . getcwd() . DIRECTORY_SEPARATOR . '..' . DIRECTORY_SEPARATOR . 'config' . DIRECTORY_SEPARATOR . 'config.ini');
             if(SELF::$_config === false)
             {
                 http_response_code(500);
