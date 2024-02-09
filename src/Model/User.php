@@ -166,9 +166,9 @@ class User implements \JsonSerializable {
 
     public function jsonSerialize(): mixed{
         return [
-            'UserId' => $this->UserId,
-            'Name' => $this->Name,
-            'Mail' => $this->Mail,
+            'userId' => $this->UserId,
+            'name' => $this->Name,
+            'mail' => $this->Mail,
         ];
     }
 }
