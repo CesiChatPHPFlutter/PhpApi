@@ -127,7 +127,7 @@ class Message implements \JsonSerializable {
                 ->setId($messageSql ["id"]);
             $messages[] = $message;
         }
-        return $messages ?: null;
+        return $messages ?? null;
     }
 
     public static function SqlGetByReceiverId(int $receiverId) : ?array{
@@ -146,7 +146,7 @@ class Message implements \JsonSerializable {
                 ->setId($messageSql ["id"]);
             $messages[] = $message;
         }
-        return $messages ?: null;
+        return $messages ?? null;
     }
 
     public static function SqlUpdate($messageId, $updatedMessage) 
@@ -160,9 +160,9 @@ class Message implements \JsonSerializable {
             $requete = $bdd->prepare('UPDATE messages SET sender_id=:senderId, receiver_id=:receiverId, content=:content WHERE message_id=:messageId');
             $requete->execute([
                 "messageId" => $messageId,
-                "content" => $updatedMessage->getContent() ?: $oldMessage->getContent(),
-                "senderId" => $updatedMessage->getSenderId() ?: $oldMessage->getSenderId(),
-                "receiverId" => $updatedMessage->getReceiverId() ?: $oldMessage->getReceiverId(),
+                "content" => ($updatedMessage->getContent() ?? '') ?: $oldMessage->getContent(),
+                "senderId" => ($updatedMessage->getSenderId() ?? '') ?: $oldMessage->getSenderId(),
+                "receiverId" => ($updatedMessage->getReceiverId() ?? '') ?: $oldMessage->getReceiverId(),
             ]);
 
             return [0, 'OK', Message::SqlGetById($messageId)];
@@ -171,7 +171,8 @@ class Message implements \JsonSerializable {
         }
     }
 
-    public function jsonSerialize(): mixed{
+
+    public function jsonSerialize(): mixed {
 
         return [
             "message_id" => $this->MessageId,
@@ -180,5 +181,34 @@ class Message implements \JsonSerializable {
             "receiver_id" => $this->receiver->getId(),
             "timestamp" => $this->Timestamp??null
         ];
+    }
+  
+    public static function SqlGetChats(int $userId): ?array 
+    {
+        $bdd = BDD::getInstance();
+        $requete = $bdd->prepare(
+            'SELECT * FROM users WHERE user_id IN (
+                SELECT sender_id AS related_user_id
+                FROM Messages
+                WHERE receiver_id = :userId
+                UNION
+                SELECT receiver_id AS related_user_id
+                FROM Messages
+                WHERE sender_id = :userId
+            );'
+        );
+        $requete->execute([
+            "userId"=> $userId
+        ]);
+        
+        $users = array();
+        while ($userSql = $requete->fetch(\PDO::FETCH_ASSOC)) {
+            $user = new User();
+            $user ->setId($userSql ["user_id"])
+            ->setName($userSql ["name"])
+            ->setMail($userSql ["mail"]);
+            $users[] = $user;
+        }
+        return $users ?? null;
     }
 }
