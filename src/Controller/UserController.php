@@ -74,26 +74,33 @@ class UserController {
         return json_encode(User::SqlUpdate($userId, $updatedUser));
     }
     
-    public function create() {
+    public function create() {        
+        $requestBody = json_decode(file_get_contents('php://input'), true);     
         
-        $requestBody = json_decode(file_get_contents('php://input'), true);
-        $hashpass = password_hash($requestBody['password'], PASSWORD_BCRYPT);
-
+        http_response_code(400);
+        
         $newUser = new User();
-
         if ($name = $requestBody['name'] ?? null) {
             $newUser->setName($name);
-        }
+        } else return null;
         if ($mail = $requestBody['mail'] ?? null) {
             $newUser->setMail($mail);
-        }
+        } else return null;
         if ($password = $requestBody['password'] ?? null) {
             $hashpass = password_hash($password, PASSWORD_BCRYPT);
             $newUser->setPassword($hashpass);
-        }
+        } else return null;
         
+
         $response = User::SqlAdd($newUser);
+        if($response[0] == 0)
+            http_response_code(200);            
+        else if ($response[0] == 1) 
+            http_response_code(500);   
+        
+        header('Content-Type: application/json; charset=utf-8');
         return json_encode($response[2]);
+
     }
 
     public function delete(int $userId) {
