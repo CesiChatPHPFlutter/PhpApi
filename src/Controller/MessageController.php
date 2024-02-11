@@ -96,7 +96,7 @@ class MessageController {
     }
     
     public function delete(int $messageId) {
-        $response = Message::SqlDelete($messageId);
+        $response = Message::SqlDeleteByMessageId($messageId);
         header('Content-Type: application/json; charset=utf-8');
         http_response_code($response[0] == 0 ? 200 : 400);
         return json_encode($response[1]);
