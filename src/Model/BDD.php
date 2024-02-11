@@ -2,6 +2,7 @@
 namespace App\Model;
 use PDO;
 use App\Model\Config;
+use Exception;
 
 class BDD
 {
