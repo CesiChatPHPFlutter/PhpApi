@@ -1,5 +1,5 @@
-DROP TABLE Messages;
-DROP TABLE Users;
+DROP TABLE IF EXISTS Messages;
+DROP TABLE IF EXISTS Users;
 
 CREATE TABLE Users (
                        user_id INTEGER PRIMARY KEY AUTO_INCREMENT,
