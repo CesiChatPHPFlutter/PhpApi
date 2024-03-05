@@ -26,17 +26,8 @@ class JwtService{
 
     }
 
-    public static function checkToken() : array {
+    public static function checkToken($jwt) : array {
 
-        if (! preg_match('/Bearer\s(\S+)/', $_SERVER['HTTP_AUTHORIZATION'], $matches)) {
-            $result = [
-                "code" => 1,
-                "body" => "Token non trouvé dans la requête"
-            ];
-            return $result;
-        }
-
-        $jwt = $matches[1];
         if (! $jwt) {
             $result = [
                 "code" => 1,
