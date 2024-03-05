@@ -6,6 +6,49 @@ use App\Model\Message;
 use App\Service\JwtService;
 
 class MessageController {
+
+    public function create () {
+        $newMessage = new Message();
+
+        $requestBody = json_decode(file_get_contents('php://input'), true);
+        $jwtToken = $requestBody['jwtToken'] ?? null;
+        if($jwtToken == null) {
+            http_response_code(400);
+            return "Missing jwtToken";
+        }
+        
+        $datas = JwtService::decryptToken($jwtToken);
+        if($datas == null || $datas->userId == null) {
+            http_response_code(400);
+            return "Invalid jwtToken";
+        }
+
+        $newMessage->setSender($datas->userId);
+
+        if ($receiverId = $requestBody["receiverId"] ?? null) {
+            $newMessage->setReceiver($receiverId);
+        }
+        if ($content = $requestBody["content"] ?? null) {
+            $newMessage->setContent($content);
+        }
+
+
+        
+        $res = Message::SqlAdd($newMessage);
+
+        if($res[0] == 0)
+        {
+            $message = Message::SqlGetMessageById($res[2]);
+            header('Content-Type: application/json; charset=utf-8');
+            http_response_code(201);
+            return json_encode($message);
+        }
+
+        header('Content-Type: application/json; charset=utf-8');
+        http_response_code(400);
+        return json_encode($res);
+    }
+  
     public function getBySenderId(int $senderId) {
         header('Content-Type: application/json; charset=utf-8');
         return json_encode(Message::SqlGetBySenderId($senderId));
@@ -102,4 +145,46 @@ class MessageController {
         return json_encode($response[1]);
     }
 
+    public function withReceiverId($param){
+        $requestBody = json_decode(file_get_contents('php://input'), true);
+        $jwtToken = $requestBody['jwtToken'] ?? null;
+        if($jwtToken == null) {
+            http_response_code(400);
+            return "Missing jwtToken";
+        }
+        
+        $datas = JwtService::decryptToken($jwtToken);
+        if($datas == null || $datas->userId == null) {
+            http_response_code(400);
+            return "Invalid jwtToken";
+        }
+
+        [$userId, $page, $perPage] = explode("/", $param);
+
+        $messages = Message::SqlGetMessagesBetweenUsers($datas->userId, $userId, $page, $perPage);
+
+        header('Content-Type: application/json; charset=utf-8');
+        return json_encode($messages);
+    }
+
+    public function totalWithReceiverId(int $receiverId) 
+    {
+        $requestBody = json_decode(file_get_contents('php://input'), true);
+        $jwtToken = $requestBody['jwtToken'] ?? null;
+        if($jwtToken == null) {
+            http_response_code(400);
+            return "Missing jwtToken";
+        }
+        
+        $datas = JwtService::decryptToken($jwtToken);
+        if($datas == null || $datas->userId == null) {
+            http_response_code(400);
+            return "Invalid jwtToken";
+        }
+
+        $total = Message::SqlGetMessageCountBetweenUsers($datas->userId, $receiverId);
+
+        //header('Content-Type: application/json; charset=utf-8');
+        return json_encode($total);
+    }
 }

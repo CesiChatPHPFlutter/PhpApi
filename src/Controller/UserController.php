@@ -2,6 +2,7 @@
 namespace App\Controller;
 
 use App\Model\User;
+use App\Model\Message;
 use App\Service\JwtService;
 
 class UserController {
@@ -149,5 +150,25 @@ class UserController {
             http_response_code(400);
             return "Mail and/or Password are incorrect";
         }
+    }
+
+    public function getChatsFromUserToken(){
+        $requestBody = json_decode(file_get_contents('php://input'), true);
+        $jwtToken = $requestBody['jwtToken'] ?? null;
+        if($jwtToken == null) {
+            http_response_code(400);
+            return "Missing jwtToken";
+        }
+        
+        $datas = JwtService::decryptToken($jwtToken);
+        if($datas == null || $datas->userId == null) {
+            http_response_code(400);
+            return "Invalid jwtToken";
+        }
+
+        $array = Message::SqlGetChats($datas->userId);
+
+        header('Content-Type: application/json; charset=utf-8');
+        return json_encode($array);
     }
 }
