@@ -89,27 +89,63 @@ class Message implements \JsonSerializable {
         }
     }
 
-    public static function SqlGetMessagesBetweenUsers(int $userId1, int $userId2): ?array {
+    public static function SqlGetMessagesBetweenUsers(int $userId1, int $userId2, int $page, int $perPage): ?array {
         $bdd = BDD::getInstance();
-        $requete = $bdd->prepare('SELECT * FROM messages WHERE (sender_id=:userId1 AND receiver_id=:userId2) OR (sender_id=:userId2 AND receiver_id=:userId1) ORDER BY timestamp');
-        $requete->execute([
-            "userId1"=> $userId1,
-            "userId2"=> $userId2
-        ]);
+        $offset = ($page - 1) * $perPage ;
+
+        //dd($senderId, $receiverId, $page, $perPage, $offset);
+
+        $requete = $bdd->prepare("SELECT * FROM messages WHERE (sender_id = :userId1 AND receiver_id = :userId2) OR (sender_id = :userId2 AND receiver_id = :userId1) ORDER BY message_id DESC LIMIT :perPage OFFSET :offset");
+        $requete->bindValue(':userId1', $userId1, \PDO::PARAM_INT);
+        $requete->bindValue(':userId2', $userId2, \PDO::PARAM_INT);
+        $requete->bindValue(':perPage', $perPage, \PDO::PARAM_INT);
+        $requete->bindValue(':offset', $offset, \PDO::PARAM_INT);
+        $requete->execute();
 
         $messages = array();
         while ($messageSql = $requete->fetch(\PDO::FETCH_ASSOC)) {
             $message = new Message();
-            $message->setContent($messageSql["content"])
-                ->setSender($messageSql["sender_id"])
-                ->setReceiver($messageSql["receiver_id"])
-                ->setId($messageSql["message_id"])
-                ->setTimestamp($messageSql["timestamp"]);
+            $message ->setContent($messageSql ["content"])
+                ->setSender($messageSql ["sender_id"])
+                ->setReceiver($messageSql ["receiver_id"])
+                ->setId($messageSql ["message_id"])
+                ->setTimestamp($messageSql ["timestamp"]);
             $messages[] = $message;
         }
-        return $messages ?: null;
+        return $messages ?? null;
     }
 
+    public static function SqlGetMessageCountBetweenUsers(int $userId1, int $userId2): int {
+        $bdd = BDD::getInstance();
+        $requete = $bdd->prepare("SELECT Count(message_id) as total FROM messages WHERE (sender_id = :userId1 AND receiver_id = :userId2) OR (sender_id = :userId2 AND receiver_id = :userId1)");
+        $requete->bindValue(':userId1', $userId1, \PDO::PARAM_INT);
+        $requete->bindValue(':userId2', $userId2, \PDO::PARAM_INT);
+        $requete->execute();
+
+        $res = $requete->fetch(\PDO::FETCH_ASSOC);
+        return $res["total"] ?? 0;
+    }
+    
+    public static function SqlGetMessageById(int $messageId) : ?Message {
+        $bdd = BDD::getInstance();
+        $requete = $bdd->prepare('SELECT * FROM messages WHERE message_id=:messageId');
+        $requete->execute([
+            "messageId"=> $messageId
+        ]);
+        
+        $message = null;
+        if($messageSql = $requete->fetch(\PDO::FETCH_ASSOC))
+        {
+            $message = new Message();
+            $message ->setContent($messageSql ["content"])
+                ->setSender($messageSql ["sender_id"])
+                ->setReceiver($messageSql ["receiver_id"])
+                ->setTimestamp($messageSql ["timestamp"])
+                ->setId($messageSql ["message_id"]);
+        }
+
+        return $message;     
+    }
 
     public static function SqlGetBySenderId(int $senderId) : ?array{
         $bdd = BDD::getInstance();
@@ -124,7 +160,7 @@ class Message implements \JsonSerializable {
             $message ->setContent($messageSql ["content"])
                 ->setSender($messageSql ["sender_id"])
                 ->setReceiver($messageSql ["receiver_id"])
-                ->setId($messageSql ["id"]);
+                ->setId($messageSql ["message_id"]);
             $messages[] = $message;
         }
         return $messages ?? null;
@@ -134,7 +170,7 @@ class Message implements \JsonSerializable {
         $bdd = BDD::getInstance();
         $requete = $bdd->prepare('SELECT * FROM messages WHERE receiver_id=:receiverId');
         $requete->execute([
-            "receiver_id"=> $receiverId
+            "receiverId"=> $receiverId
         ]);
         
         $messages = array();
@@ -187,7 +223,7 @@ class Message implements \JsonSerializable {
     {
         $bdd = BDD::getInstance();
         $requete = $bdd->prepare(
-            'SELECT * FROM users WHERE user_id IN (
+            'SELECT * FROM users WHERE user_id <>:userId AND user_id IN (
                 SELECT sender_id AS related_user_id
                 FROM Messages
                 WHERE receiver_id = :userId

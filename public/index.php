@@ -5,9 +5,9 @@ session_start();
 require_once '../vendor/autoload.php';
 
 $urls = explode('/',$_GET['url']);
-$controller = $urls[0] ?? '';
-$action = $urls[1] ?? '';
-$param = $urls[2] ?? '';
+$controller = array_shift($urls) ?? '';
+$action = array_shift($urls) ?? '';
+$param = join("/", $urls) ?? '';
 
 if($controller != ''){
     try {

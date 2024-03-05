@@ -8,22 +8,45 @@ use App\Service\JwtService;
 class MessageController {
 
     public function create () {
-        $requestBody = json_decode(file_get_contents('php://input'), true);
         $newMessage = new Message();
 
-        if ($senderId = $requestBody['senderId'] ?? null) {
-            $newMessage->setSender($senderId);
+        $requestBody = json_decode(file_get_contents('php://input'), true);
+        $jwtToken = $requestBody['jwtToken'] ?? null;
+        if($jwtToken == null) {
+            http_response_code(400);
+            return "Missing jwtToken";
         }
-        if ($receiverId = $requestBody['receiverId'] ?? null) {
+        
+        $datas = JwtService::decryptToken($jwtToken);
+        if($datas == null || $datas->userId == null) {
+            http_response_code(400);
+            return "Invalid jwtToken";
+        }
+
+        $newMessage->setSender($datas->userId);
+
+        if ($receiverId = $requestBody["receiverId"] ?? null) {
             $newMessage->setReceiver($receiverId);
         }
-        if ($content = $requestBody['content'] ?? null) {
+        if ($content = $requestBody["content"] ?? null) {
             $newMessage->setContent($content);
         }
 
 
-        //header('Content-Type: application/json; charset=utf-8');
-        return json_encode(Message::SqlAdd($newMessage));
+        
+        $res = Message::SqlAdd($newMessage);
+
+        if($res[0] == 0)
+        {
+            $message = Message::SqlGetMessageById($res[2]);
+            header('Content-Type: application/json; charset=utf-8');
+            http_response_code(201);
+            return json_encode($message);
+        }
+
+        header('Content-Type: application/json; charset=utf-8');
+        http_response_code(400);
+        return json_encode($res);
     }
 
     public function getBySenderId(int $senderId) {
@@ -34,14 +57,6 @@ class MessageController {
     public function getByReceiverId(int $receiverId) {
         header('Content-Type: application/json; charset=utf-8');
         return json_encode(Message::SqlGetByReceiverId($receiverId));
-    }
-
-    public function getMessagesBetweenUsers() {
-        $requestBody = json_decode(file_get_contents('php://input'));
-        $userId1 = $requestBody->userId1;
-        $userId2 = $requestBody->userId2;
-        header('Content-Type: application/json; charset=utf-8');
-        return json_encode(Message::SqlGetMessagesBetweenUsers($userId1, $userId2));
     }
 
     public function update(int $messageId)
@@ -67,7 +82,7 @@ class MessageController {
         return json_encode(Message::SqlDelete($messageId));
     }
 
-    public function getChats(){
+    public function withReceiverId($param){
         $requestBody = json_decode(file_get_contents('php://input'), true);
         $jwtToken = $requestBody['jwtToken'] ?? null;
         if($jwtToken == null) {
@@ -81,9 +96,32 @@ class MessageController {
             return "Invalid jwtToken";
         }
 
-        $array = Message::SqlGetChats($datas->userId);
+        [$userId, $page, $perPage] = explode("/", $param);
+
+        $messages = Message::SqlGetMessagesBetweenUsers($datas->userId, $userId, $page, $perPage);
 
         header('Content-Type: application/json; charset=utf-8');
-        return json_encode($array);
+        return json_encode($messages);
+    }
+
+    public function totalWithReceiverId(int $receiverId) 
+    {
+        $requestBody = json_decode(file_get_contents('php://input'), true);
+        $jwtToken = $requestBody['jwtToken'] ?? null;
+        if($jwtToken == null) {
+            http_response_code(400);
+            return "Missing jwtToken";
+        }
+        
+        $datas = JwtService::decryptToken($jwtToken);
+        if($datas == null || $datas->userId == null) {
+            http_response_code(400);
+            return "Invalid jwtToken";
+        }
+
+        $total = Message::SqlGetMessageCountBetweenUsers($datas->userId, $receiverId);
+
+        //header('Content-Type: application/json; charset=utf-8');
+        return json_encode($total);
     }
 }
