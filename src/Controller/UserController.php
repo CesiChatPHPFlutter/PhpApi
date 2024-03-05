@@ -58,6 +58,11 @@ class UserController {
         $requestBody = json_decode(file_get_contents('php://input'), true);
         if($userId = $requestBody['userId'] ?? null){}
         else if($jwtToken = $requestBody['jwtToken'] ?? null){
+
+            $check = JwtService::checkToken($jwtToken);
+            if($check["code"] == 1)
+                http_response_code(401);
+
             $datas = JwtService::decryptToken($jwtToken);
             if($datas == null || $datas->userId == null) {
                 http_response_code(400);
@@ -160,6 +165,10 @@ class UserController {
             return "Missing jwtToken";
         }
         
+        $check = JwtService::checkToken($jwtToken);
+        if($check["code"] == 1)
+            http_response_code(401);
+
         $datas = JwtService::decryptToken($jwtToken);
         if($datas == null || $datas->userId == null) {
             http_response_code(400);

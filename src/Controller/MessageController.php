@@ -17,6 +17,10 @@ class MessageController {
             return "Missing jwtToken";
         }
         
+        $check = JwtService::checkToken($jwtToken);
+        if($check["code"] == 1)
+            http_response_code(401);
+
         $datas = JwtService::decryptToken($jwtToken);
         if($datas == null || $datas->userId == null) {
             http_response_code(400);
@@ -75,6 +79,10 @@ class MessageController {
             return "Missing jwtToken";
         }
         
+        $check = JwtService::checkToken($jwtToken);
+        if($check["code"] == 1)
+            http_response_code(401);
+
         $datas = JwtService::decryptToken($jwtToken);
         if($datas == null || $datas->userId == null) {
             http_response_code(400);
@@ -126,6 +134,10 @@ class MessageController {
             return "Missing jwtToken";
         }
         
+        $check = JwtService::checkToken($jwtToken);
+        if($check["code"] == 1)
+            http_response_code(401);
+
         $datas = JwtService::decryptToken($jwtToken);
         if($datas == null || $datas->userId == null) {
             http_response_code(400);
@@ -149,6 +161,10 @@ class MessageController {
             return "Missing jwtToken";
         }
         
+        $check = JwtService::checkToken($jwtToken);
+        if($check["code"] == 1)
+            http_response_code(401);
+
         $datas = JwtService::decryptToken($jwtToken);
         if($datas == null || $datas->userId == null) {
             http_response_code(400);
