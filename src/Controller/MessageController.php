@@ -87,33 +87,6 @@ class MessageController {
         return json_encode($array);
     }
 
-    public function create () {
-        $requestBody = json_decode(file_get_contents('php://input'), true);
-        
-        http_response_code(400);
-
-        $newMessage = new Message();
-        if ($senderId = $requestBody['senderId'] ?? null) {
-            $newMessage->setSender($senderId);
-        } else return 'Missing Sender';
-        if ($receiverId = $requestBody['receiverId'] ?? null) {
-            $newMessage->setReceiver($receiverId);
-        } else return 'Missing Receiver';
-        if ($content = $requestBody['content'] ?? null) {
-            $newMessage->setContent($content);
-        } else $newMessage->setContent(' ');
-
-        $response = Message::SqlAdd($newMessage);
-
-        if($response[0] == 0)
-            http_response_code(200);            
-        else if ($response[0] == 1) 
-            http_response_code(500);   
-        
-        header('Content-Type: application/json; charset=utf-8');
-        return json_encode($response[2]);
-    }
-
     public function update(int $messageId)
     {
         $requestBody = json_decode(file_get_contents('php://input'), true);
